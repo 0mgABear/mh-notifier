@@ -62,6 +62,6 @@ const poll = async () => {
   }
 };
 
-Deno.cron("poll mousehunt feed", "*/15 * * * *", poll);
+//Deno.cron("poll mousehunt feed", "*/15 * * * *", poll);
 
 Deno.serve(() => new Response("OK"));
