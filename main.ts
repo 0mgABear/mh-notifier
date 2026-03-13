@@ -63,20 +63,18 @@ const poll = async () => {
   }
 };
 
-await poll(); // temporary - remove after testing
-
-Deno.cron("poll mousehunt feed", "*/15 * * * *", poll);
-
 Deno.serve(async (req) => {
   const url = new URL(req.url);
-  if (url.pathname === "/kv") {
-    const entries = [];
+  if (url.pathname === "/reset") {
     for await (const entry of kv.list({ prefix: ["seen"] })) {
-      entries.push(entry.key);
+      await kv.delete(entry.key);
     }
-    return new Response(JSON.stringify(entries, null, 2), {
-      headers: { "Content-Type": "application/json" },
-    });
+    await poll();
+    return new Response("Reset and sent!", { status: 200 });
   }
   return new Response("OK");
 });
+
+Deno.cron("poll mousehunt feed", "0 * * * *", poll);
+
+Deno.serve(() => new Response("OK"));
