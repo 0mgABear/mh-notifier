@@ -1,3 +1,7 @@
+///<reference lib="deno.unstable" />
+
+export {};
+
 const RSS_URL = Deno.env.get("RSS_FEED_URL")!;
 const BLOCKED = ["mshnt.ca/shop-mh", "mshnt.ca/mh-news"];
 
@@ -34,6 +38,7 @@ const poll = async () => {
   for (const item of items) {
     const block = item[1];
     const guid = block.match(/<guid[^>]*>([^<]*)<\/guid>/)?.[1].trim();
+    if (!guid) continue;
     const description =
       block.match(
         /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/,
@@ -44,16 +49,11 @@ const poll = async () => {
       .filter((link) => !BLOCKED.some((b) => link.includes(b)));
 
     const seen = await kv.get(["seen", guid]);
-    if (seen.value) {
-      console.log(`Already seen: ${guid}`);
+    if (seen.value || links.length === 0) {
       continue;
     }
 
     await kv.set(["seen", guid], true);
-    if (links.length === 0) {
-      console.log(`No free links in ${guid}, skipping`);
-      continue;
-    }
 
     const message =
       `🧀 <b>New MouseHunt Items</b>\n\n` +
@@ -63,16 +63,6 @@ const poll = async () => {
   }
 };
 
-Deno.serve(async (req) => {
-  const url = new URL(req.url);
-  if (url.pathname === "/reset") {
-    for await (const entry of kv.list({ prefix: ["seen"] })) {
-      await kv.delete(entry.key);
-    }
-    await poll();
-    return new Response("Reset and sent!", { status: 200 });
-  }
-  return new Response("OK");
-});
+Deno.serve(() => new Response("OK"));
 
 Deno.cron("poll mousehunt feed", "0 * * * *", poll);
