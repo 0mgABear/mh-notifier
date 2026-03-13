@@ -62,8 +62,8 @@ const poll = async () => {
   }
 };
 
-// Run once immediately on startup
 await poll();
 
-// Then poll every 15 minutes
 Deno.cron("poll mousehunt feed", "*/15 * * * *", poll);
+
+Deno.serve(() => new Response("OK"));
