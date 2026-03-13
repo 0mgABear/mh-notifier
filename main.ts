@@ -1,7 +1,8 @@
 const RSS_URL = Deno.env.get("RSS_FEED_URL")!;
 const BLOCKED = ["mshnt.ca/shop-mh", "mshnt.ca/mh-news"];
 
-const kv = await Deno.openKv();
+const kvUrl = Deno.env.get("DENO_KV_URL");
+const kv = await Deno.openKv(kvUrl);
 
 const sendTelegram = async (message: string) => {
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
@@ -62,6 +63,20 @@ const poll = async () => {
   }
 };
 
-//Deno.cron("poll mousehunt feed", "*/15 * * * *", poll);
+await poll(); // temporary - remove after testing
 
-Deno.serve(() => new Response("OK"));
+Deno.cron("poll mousehunt feed", "*/15 * * * *", poll);
+
+Deno.serve(async (req) => {
+  const url = new URL(req.url);
+  if (url.pathname === "/kv") {
+    const entries = [];
+    for await (const entry of kv.list({ prefix: ["seen"] })) {
+      entries.push(entry.key);
+    }
+    return new Response(JSON.stringify(entries, null, 2), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return new Response("OK");
+});
