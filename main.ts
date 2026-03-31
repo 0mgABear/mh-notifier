@@ -71,4 +71,5 @@ const poll = async () => {
 
 Deno.serve(() => new Response("OK"));
 
-Deno.cron("poll mousehunt feed", "0 * * * *", poll);
+//Update to once daily, 12PM UTC since RSS is only updated once per 24H
+Deno.cron("poll mousehunt feed", "0 4 * * *", poll);
