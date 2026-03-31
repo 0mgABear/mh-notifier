@@ -31,9 +31,12 @@ const sendTelegram = async (message: string) => {
 
 const poll = async () => {
   console.log("Polling feed...");
+
   const res = await fetch(RSS_URL);
   const xml = await res.text();
   const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].reverse();
+
+  console.log(`Found ${items.length} items`);
 
   for (const item of items) {
     const block = item[1];
@@ -50,6 +53,9 @@ const poll = async () => {
 
     const seen = await kv.get(["seen", guid]);
     if (seen.value || links.length === 0) {
+      console.log(
+        `GUID: ${guid} | Seen: ${!!seen.value} | Links: ${links.length}`,
+      );
       continue;
     }
 
