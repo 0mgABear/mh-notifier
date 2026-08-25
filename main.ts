@@ -3,7 +3,12 @@
 export {};
 
 const RSS_URL = Deno.env.get("RSS_FEED_URL")!;
-const BLOCKED = ["mshnt.ca/shop-mh", "mshnt.ca/mh-news"];
+const BLOCKED = [
+  "mshnt.ca/shop-mh",
+  "mshnt.ca/mh-news",
+  "mshnt.ca/shop",
+  "mshnt.ca/news",
+];
 
 const kvUrl = Deno.env.get("DENO_KV_URL");
 const kv = await Deno.openKv(kvUrl);
